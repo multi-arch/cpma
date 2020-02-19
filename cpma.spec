@@ -64,6 +64,10 @@ pushd pkg/transform/reportoutput/ && go generate && popd
 go build -o %{name}
 
 %ifarch x86_64
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o _output/linux_amd64/%{name}
+CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -o _output/linux_ppc64le/%{name}
+CGO_ENABLED=0 GOOS=linux GOARCH=s390x go build -o _output/linux_s390x/%{name}
+
 CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 GO_BUILD_FLAGS="-tags 'include_gcs include_oss containers_image_openpgp'" go build -o _output/darwin_amd64/%{name}
 
 GOOS=windows GOARCH=amd64 go build -o _output/windows_amd64/%{name}.exe
@@ -77,8 +81,10 @@ install -p -m 755 ./%{name} %{buildroot}%{_bindir}/%{name}
 
 %ifarch x86_64
 # Install client executable for windows and mac
-install -d %{buildroot}%{_datadir}/%{name}/{linux,macosx,windows}
-install -p -m 755 ./%{name} %{buildroot}%{_datadir}/%{name}/linux/%{name}
+install -d %{buildroot}%{_datadir}/%{name}/{linux,linux-ppc64le,linux-s390x,macosx,windows}
+install -p -m 755 ./_output/linux_amd64/%{name} %{buildroot}%{_datadir}/%{name}/linux/%{name}
+install -p -m 755 ./_output/linux_ppc64le/%{name} %{buildroot}%{_datadir}/%{name}/linux-ppc64le/%{name}
+install -p -m 755 ./_output/linux_s390x/%{name} %{buildroot}%{_datadir}/%{name}/linux-s390x/%{name}
 install -p -m 755 ./_output/darwin_amd64/%{name} %{buildroot}/%{_datadir}/%{name}/macosx/%{name}
 install -p -m 755 ./_output/windows_amd64/%{name}.exe %{buildroot}/%{_datadir}/%{name}/windows/%{name}.exe
 %endif
@@ -89,9 +95,13 @@ install -p -m 755 ./_output/windows_amd64/%{name}.exe %{buildroot}/%{_datadir}/%
 %ifarch x86_64
 %files redistributable
 %dir %{_datadir}/%{name}/linux/
+%dir %{_datadir}/%{name}/linux-ppc64le/
+%dir %{_datadir}/%{name}/linux-s390x/
 %dir %{_datadir}/%{name}/macosx/
 %dir %{_datadir}/%{name}/windows/
 %{_datadir}/%{name}/linux/%{name}
+%{_datadir}/%{name}/linux-ppc64le/%{name}
+%{_datadir}/%{name}/linux-s390x/%{name}
 %{_datadir}/%{name}/macosx/%{name}
 %{_datadir}/%{name}/windows/%{name}.exe
 %endif
